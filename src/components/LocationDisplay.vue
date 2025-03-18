@@ -14,6 +14,20 @@
       <p>Enlem: {{ location.coords.latitude }}</p>
       <p>Boylam: {{ location.coords.longitude }}</p>
       <p>Doğruluk: {{ location.coords.accuracy }} metre</p>
+      
+      <div v-if="address">
+        <h3>Adres Bilgileri:</h3>
+        <p v-if="address.neighborhood">Mahalle: {{ address.neighborhood }}</p>
+        <p v-if="address.street">Sokak: {{ address.street }}</p>
+        <p v-if="address.district">İlçe: {{ address.district }}</p>
+        <p v-if="address.city">Şehir: {{ address.city }}</p>
+      </div>
+      <div v-else-if="addressLoading">
+        <p>Adres bilgileri yükleniyor...</p>
+      </div>
+      <div v-else-if="addressError">
+        <p>Adres bilgileri alınamadı: {{ addressError }}</p>
+      </div>
     </div>
     
     <Button label="Konumu Güncelle" @click="getLocation" />
@@ -40,6 +54,9 @@ export default {
     const location = ref(null);
     const loading = ref(false);
     const error = ref(null);
+    const address = ref(null);
+    const addressLoading = ref(false);
+    const addressError = ref(null);
 
     const checkPermissions = async () => {
       try {
@@ -68,10 +85,46 @@ export default {
       }
     };
 
+    const getAddressFromCoords = async (latitude, longitude) => {
+      try {
+        addressLoading.value = true;
+        addressError.value = null;
+        
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=tr`
+        );
+        
+        if (!response.ok) {
+          throw new Error('Adres bilgileri alınamadı');
+        }
+
+        const data = await response.json();
+        
+        if (!data || !data.address) {
+          throw new Error('Adres bulunamadı');
+        }
+
+        const addressData = {
+          street: data.address.road || data.address.pedestrian || '',
+          neighborhood: data.address.neighbourhood || data.address.suburb || '',
+          district: data.address.city_district || data.address.town || data.address.municipality || '',
+          city: data.address.city || data.address.state || ''
+        };
+
+        address.value = addressData;
+      } catch (err) {
+        console.error('Adres çözümleme hatası:', err);
+        addressError.value = err.message;
+      } finally {
+        addressLoading.value = false;
+      }
+    };
+
     const getLocation = async () => {
       try {
         loading.value = true;
         error.value = null;
+        address.value = null; // Adres bilgilerini sıfırla
 
         console.log('Konum izinleri kontrol ediliyor...');
         const hasPermission = await checkPermissions();
@@ -83,7 +136,6 @@ export default {
         console.log('Konum alınıyor...');
         
         if (Geolocation) {
-          // Capacitor API ile konum al
           const position = await Geolocation.getCurrentPosition({
             enableHighAccuracy: true,
             timeout: 10000,
@@ -93,44 +145,30 @@ export default {
           console.log('Konum alındı (Capacitor):', position);
           location.value = position;
           store.dispatch('updateLocation', position);
+          // Konum alındıktan sonra adres bilgilerini al
+          await getAddressFromCoords(position.coords.latitude, position.coords.longitude);
         } else if (navigator.geolocation) {
-          // Tarayıcı API ile konum al - Hata ele alma iyileştirildi
           return new Promise((resolve) => {
             navigator.geolocation.getCurrentPosition(
-              (position) => {
+              async (position) => {
                 console.log('Konum alındı (Browser):', position);
                 location.value = position;
                 store.dispatch('updateLocation', position);
+                // Konum alındıktan sonra adres bilgilerini al
+                await getAddressFromCoords(position.coords.latitude, position.coords.longitude);
                 loading.value = false;
                 resolve(position);
               },
               (err) => {
                 console.error('Tarayıcı konum hatası:', err);
-                
-                // Konum alınamadığında, geliştirme ortamında varsayılan konum kullanın
-                if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
-                  console.log('Geliştirme ortamında varsayılan konum kullanılıyor');
-                  const mockPosition = {
-                    coords: {
-                      latitude: 41.0082, // İstanbul koordinatları
-                      longitude: 28.9784,
-                      accuracy: 10
-                    },
-                    timestamp: Date.now()
-                  };
-                  location.value = mockPosition;
-                  store.dispatch('updateLocation', mockPosition);
-                } else {
-                  handleLocationError(err);
-                }
-                
+                handleLocationError(err);
                 loading.value = false;
-                resolve(null); // Promise'i çözüyoruz, hata durumunda bile
+                resolve(null);
               },
               {
-                enableHighAccuracy: false, // Daha fazla uyumluluk için false
-                timeout: 30000, // Zaman aşımını artırdık
-                maximumAge: 300000 // 5 dakikaya kadar eski konumları kabul et
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 0
               }
             );
           });
@@ -141,7 +179,7 @@ export default {
         console.error('Konum alma hatası:', err);
         handleLocationError(err);
       } finally {
-        if (Geolocation) { // navigator.geolocation için callback'lerde loading değeri ayarlanıyor
+        if (Geolocation) {
           loading.value = false;
         }
       }
@@ -153,8 +191,9 @@ export default {
       } else if (err.code === 2 || (err.message && err.message.includes('unavailable'))) {
         error.value = 'Konum servisi kullanılamıyor. Lütfen:\n' +
                      '1. Sistem ayarlarından konum servislerinin açık olduğunu kontrol edin\n' +
-                     '2. İnternet bağlantınızı kontrol edin\n' +
-                     '3. Uygulamayı yeniden başlatın';
+                     '2. İnternet bağlantınızı kontrol edin\n' + 
+                     '3. GPS sinyalinin güçlü olduğu bir alanda olduğunuzdan emin olun\n' +
+                     '4. Uygulamayı yeniden başlatın';
       } else if (err.code === 3 || (err.message && err.message.includes('timeout'))) {
         error.value = 'Konum alma zaman aşımına uğradı. Lütfen tekrar deneyin.';
       } else {
@@ -178,7 +217,15 @@ export default {
       intervalId = setInterval(getLocation, 300000); // 5 dakikada bir güncelle
     });
 
-    return { location, getLocation, loading, error };
+    return { 
+      location, 
+      getLocation, 
+      loading, 
+      error,
+      address,
+      addressLoading,
+      addressError
+    };
   },
 };
 </script>
