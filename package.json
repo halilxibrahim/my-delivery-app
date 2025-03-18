@@ -1,0 +1,30 @@
+{
+  "name": "my-delivery-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.1.0",
+    "@capacitor/camera": "^7.0.0",
+    "@capacitor/cli": "^7.1.0",
+    "@capacitor/core": "^7.1.0",
+    "@capacitor/geolocation": "^7.1.1",
+    "@capacitor/ios": "^7.1.0",
+    "@ionic/pwa-elements": "^3.3.0",
+    "primeicons": "^7.0.0",
+    "primevue": "^3.53.1",
+    "quagga": "^0.12.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vuex": "^4.0.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.2.0"
+  }
+}

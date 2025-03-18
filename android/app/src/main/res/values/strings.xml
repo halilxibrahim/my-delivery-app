@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">my-delivery-app</string>
+    <string name="title_activity_main">my-delivery-app</string>
+    <string name="package_name">com.delivery.app</string>
+    <string name="custom_url_scheme">com.delivery.app</string>
+</resources>
