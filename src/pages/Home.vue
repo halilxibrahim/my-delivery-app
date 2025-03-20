@@ -6,17 +6,6 @@
         <p class="subtitle">Teslimat Paneliniz</p>
       </div>
 
-      <div class="stats-box">
-        <div class="stat-item">
-          <span class="stat-number">12</span>
-          <span class="stat-label">Aktif Sipariş</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">45</span>
-          <span class="stat-label">Bugün Tamamlanan</span>
-        </div>
-      </div>
-
       <div class="action-box">
         <Button 
           label="Siparişleri Görüntüle" 
@@ -45,7 +34,7 @@ export default {
 
 .bento-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: 1fr;
   gap: 24px;
   max-width: 1200px;
   margin: 0 auto;

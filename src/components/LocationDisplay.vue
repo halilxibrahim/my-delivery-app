@@ -286,6 +286,7 @@ export default {
   backdrop-filter: blur(10px);
   border-radius: 24px;
   overflow: hidden;
+  min-height: 400px;
 }
 
 .status-box {
@@ -421,6 +422,10 @@ export default {
 }
 
 @media (max-width: 768px) {
+  .location-display {
+    min-height: 500px;
+  }
+
   .location-details-grid {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -432,6 +437,24 @@ export default {
 
   .detail-item {
     padding: 12px;
+  }
+}
+
+@media (max-width: 320px) {
+  .location-display {
+    max-height: 1000px;
+  }
+
+  .location-content {
+    padding: 16px;
+  }
+
+  .info-box {
+    padding: 16px;
+  }
+
+  .detail-item {
+    padding: 10px;
   }
 }
 </style>

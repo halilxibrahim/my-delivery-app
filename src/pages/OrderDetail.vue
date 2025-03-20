@@ -267,6 +267,50 @@ export default {
   
   .location-container {
     aspect-ratio: 4/3;
+    min-height: 700px;
+  }
+}
+
+@media (max-width: 425px) {
+  .location-container {
+    aspect-ratio: 1/1;
+    min-height: 750px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 375px) {
+  .bento-grid {
+    gap: 12px;
+    padding: 8px;
+  }
+
+  .location-container {
+    aspect-ratio: 3/4;
+    min-height: 700px;
+  }
+
+  .header-box,
+  .info-box,
+  .tool-box,
+  .action-box {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .tools-grid {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 320px) {
+  .location-container {
+    aspect-ratio: 3/4;
+    min-height: 700px;
   }
 }
 
